@@ -267,7 +267,15 @@ class Database {
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
         );
-
+                // SSL for managed MySQL (e.g. Aiven)
+        $ssl_ca = getenv('DB_SSL_CA');
+        if ($driver === 'mysql' && $ssl_ca) {
+            if (!preg_match('#^([A-Za-z]:[\\\\/]|/)#', $ssl_ca)) {
+                $ssl_ca = ROOT_DIR . $ssl_ca;
+            }
+            $options[PDO::MYSQL_ATTR_SSL_CA] = $ssl_ca;
+        }
+        
         try {
             $this->db = new PDO($dsn, $username, $password, $options);
             $this->driver = $this->db->getAttribute(PDO::ATTR_DRIVER_NAME);
