@@ -44,6 +44,18 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 */
 /** @var object $router **/
 
+// CORS preflight: browsers send OPTIONS before requests that carry
+// an Authorization header. Answer it before routing.
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+    $allowed = function_exists('config_item') ? config_item('allow_origin') : null;
+    header('Access-Control-Allow-Origin: ' . ($allowed ?: '*'));
+    header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    header('Access-Control-Max-Age: 86400');
+    http_response_code(204);
+    exit;
+}
+
 $router->get('/', 'Welcome::index');
 // Migration Routes
 $router->get('create-migration/{migration_class}', 'MigrationController::create_migration');
